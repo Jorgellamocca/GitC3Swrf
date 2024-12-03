@@ -1,4 +1,5 @@
 **Predicción Numérica del Clima Estacional**
+
 **Objetivo de la Clase**
 Comprender los conceptos básicos, los modelos y los procedimientos utilizados en la predicción numérica del clima estacional, así como su relevancia para la toma de decisiones en sectores sensibles al clima.
 
