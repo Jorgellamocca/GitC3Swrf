@@ -26,6 +26,7 @@ Condiciones de contorno: Factores externos como la cobertura de nieve, el hielo 
 **Tipos de predicción**
 **Determinista:** Predicción precisa de valores (poco común en escalas estacionales).
 **Probabilística:** Estima probabilidades de desviaciones positivas, negativas o cercanas al promedio.
+
 **3. Modelos Numéricos de Predicción Estacional**
 **Componentes principales**
 **Modelo atmosférico:** Simula la dinámica y la termodinámica de la atmósfera.
@@ -47,6 +48,7 @@ Productos de salida
 Anomalías de temperatura.
 Precipitación acumulada.
 Índices climáticos (ej. ONI, SOI, IOD).
+
 **4. Métodos y Enfoques**
 **Método dinámico**
 Utiliza modelos numéricos para resolver ecuaciones físicas del sistema climático:
@@ -80,6 +82,7 @@ Simular el clima desde diciembre hasta febrero.
 Analizar los resultados:
 Identificar zonas con probabilidad alta de lluvias por encima de lo normal.
 Comparar con eventos históricos similares.
+
 **7. Desafíos y Oportunidades**
 Desafíos
 Baja resolución espacial en regiones complejas (ej. Andes).
@@ -89,6 +92,7 @@ Falta de datos iniciales en ciertas regiones.
 Integrar observaciones satelitales para mejorar las condiciones iniciales.
 Incorporar inteligencia artificial para combinar métodos dinámicos y estadísticos.
 Ampliar la colaboración internacional para desarrollar sistemas multi-modelo.
+
 **8. Conclusión**
 La predicción numérica del clima estacional es una herramienta poderosa para anticipar eventos climáticos y apoyar la toma de decisiones estratégicas. Sin embargo, requiere un esfuerzo continuo en la mejora de modelos, la recolección de datos y la validación de resultados.
 
