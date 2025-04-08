@@ -11,7 +11,7 @@ dz_dict = {
 
 # Leer los meses desde los nombres de archivo en www/temp
 def obtener_meses_disponibles():
-    archivos = Path("www/temp").glob("out_*_*.png")
+    archivos = Path("docs/temp").glob("out_*_*.png")
     yyyymm_set = set()
     for archivo in archivos:
         partes = archivo.stem.split("_")
