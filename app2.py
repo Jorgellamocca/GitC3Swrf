@@ -1,5 +1,6 @@
-##Generados de las imagenes mensuales
-#sALIDAS out_variable_DZ_YYYYMM.png:
+# Generados de las imágenes mensuales
+# SALIDAS en formato: www/temp/out_variable_DZ_YYYYMM.png
+
 import os
 import requests
 import xarray as xr
@@ -33,7 +34,8 @@ download_file("https://raw.githubusercontent.com/Jorgellamocca/GitC3Swrf/main/sh
 download_file("https://raw.githubusercontent.com/Jorgellamocca/GitC3Swrf/main/shape/DIRECCIONES_ZONALES.shx", "departamentos.shx")
 download_file("https://raw.githubusercontent.com/Jorgellamocca/GitC3Swrf/main/data/flx.anom.ecmwf.nc", "flx.anom.ecmwf.nc")
 
-os.makedirs("temp", exist_ok=True)
+# Crear carpeta de salida en www/
+os.makedirs("www/temp", exist_ok=True)
 
 # -------------------------- CARGA --------------------------
 gdf = gpd.read_file("departamentos.shp")
@@ -42,6 +44,7 @@ gdf['DZ'] = gdf['DZ'].astype(str).str.zfill(2)
 ds = xr.open_dataset("flx.anom.ecmwf.nc")
 ref_time = pd.to_datetime(ds['forecast_reference_time'].values[0])
 
+# Convertir tpara de m/s a mm/mes
 if 'tpara' in ds:
     ds['tpara'] = ds['tpara'] * 1000 * 30 * 24 * 3600
 
@@ -110,6 +113,8 @@ for dz_code in dz_dict:
             cbar = fig.colorbar(im, ax=ax, shrink=0.7)
             cbar.set_label(info['label'])
 
-            fname = f"temp/out_{var_name}_{dz_code}_{fecha.strftime('%Y%m')}.png"
+            fname = f"www/temp/out_{var_name}_{dz_code}_{fecha.strftime('%Y%m')}.png"
             plt.savefig(fname, dpi=150, bbox_inches="tight")
             plt.close()
+
+

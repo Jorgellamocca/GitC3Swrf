@@ -1,47 +1,38 @@
-#Generados del dashboard interactivo
-from shiny import App, ui, render, reactive
 import os
-import re
+from shiny import App, ui, render, reactive
+from pathlib import Path
 
-# Diccionario de Direcciones Zonales (clave = código)
+# Diccionario de Direcciones Zonales
 dz_dict = {
     "01": "DZ-PIURA", "02": "DZ-LAMBAYEQUE", "03": "DZ-CAJAMARCA", "04": "DZ-LIMA",
     "05": "DZ-ICA", "06": "DZ-AREQUIPA", "07": "DZ-TACNA", "08": "DZ-LORETO",
     "09": "DZ-SAN MARTÍN", "10": "DZ-HUÁNUCO", "11": "DZ-JUNÍN", "12": "DZ-CUSCO", "13": "DZ-PUNO"
 }
 
-# Leer DZs disponibles desde los nombres de archivos
-def obtener_dz_disponibles():
-    archivos = os.listdir("temp") if os.path.exists("temp") else []
-    dz_codigos = set()
-    for f in archivos:
-        match = re.search(r'_(\d{2})_\d{6}\.png$', f)
-        if match:
-            dz_codigos.add(match.group(1))
-    dz_codigos = sorted(list(dz_codigos))
-    return {dz: dz_dict.get(dz, f"DZ-{dz}") for dz in dz_codigos}
-
-# Obtener los YYYYMM únicos disponibles y asignarles MES1 a MES6
+# Leer los meses desde los nombres de archivo en www/temp
 def obtener_meses_disponibles():
-    archivos = os.listdir("temp") if os.path.exists("temp") else []
+    archivos = Path("www/temp").glob("out_*_*.png")
     yyyymm_set = set()
-    for f in archivos:
-        match = re.search(r'_\d{2}_(\d{6})\.png$', f)
-        if match:
-            yyyymm_set.add(match.group(1))
-    yyyymm_sorted = sorted(list(yyyymm_set))
-    return {f"MES{i+1}": yyyymm for i, yyyymm in enumerate(yyyymm_sorted[:6])}
+    for archivo in archivos:
+        partes = archivo.stem.split("_")
+        if len(partes) == 4:
+            _, _, _, yyyymm = partes
+            yyyymm_set.add(yyyymm)
+    return {f"MES{i+1}": fecha for i, fecha in enumerate(sorted(yyyymm_set))}
+
+meses_dict = obtener_meses_disponibles()
 
 # UI
 app_ui = ui.page_fluid(
     ui.h2("Pronóstico mensual por Dirección Zonal"),
 
     ui.row(
-        ui.column(6, ui.input_select("dz_selected", "Dirección Zonal (DZ):", obtener_dz_disponibles())),
-        ui.column(6, ui.input_select("mes_selected", "Mes del pronóstico:", obtener_meses_disponibles()))
+        ui.column(6, ui.input_select("dz_selected", "Dirección Zonal (DZ):", dz_dict)),
+        ui.column(6, ui.input_select("mes_selected", "Mes del pronóstico:", meses_dict))
     ),
 
     ui.h4("Pronóstico mensual: Tmax, Tmin y Precipitación"),
+
     ui.row(
         ui.column(4, ui.output_image("img_tmax")),
         ui.column(4, ui.output_image("img_tmin")),
@@ -56,42 +47,37 @@ def server(input, output, session):
     def rutas_imagenes():
         dz_code = input.dz_selected()
         mes_key = input.mes_selected()
-        meses_dict = obtener_meses_disponibles()
-        yyyymm = meses_dict.get(mes_key)
-
-        if not dz_code or not yyyymm:
-            return {"tmax": "", "tmin": "", "prec": ""}
+        yyyymm = meses_dict.get(mes_key, "")
 
         rutas = {
             "tmax": f"temp/out_mx2t24a_{dz_code}_{yyyymm}.png",
             "tmin": f"temp/out_mn2t24a_{dz_code}_{yyyymm}.png",
             "prec": f"temp/out_tpara_{dz_code}_{yyyymm}.png"
         }
+        print("Rutas generadas:", rutas)
         return rutas
+
+    def imagen_render(path_web, alt):
+        path_disk = os.path.join("docs", path_web)  # Verificamos si existe el archivo físicamente
+        if os.path.exists(path_disk):
+            return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+        else:
+            return None  # Evita error si no existe
 
     @output
     @render.image
     def img_tmax():
-        ruta = rutas_imagenes()["tmax"]
-        if os.path.exists(ruta):
-            return {"src": ruta, "alt": "Tmax", "style": "width: 100%; max-width: 100%; height: auto;"}
-        return {"src": "", "alt": "Imagen no encontrada"}
+        return imagen_render(rutas_imagenes()["tmax"], "Tmax")
 
     @output
     @render.image
     def img_tmin():
-        ruta = rutas_imagenes()["tmin"]
-        if os.path.exists(ruta):
-            return {"src": ruta, "alt": "Tmin", "style": "width: 100%; max-width: 100%; height: auto;"}
-        return {"src": "", "alt": "Imagen no encontrada"}
+        return imagen_render(rutas_imagenes()["tmin"], "Tmin")
 
     @output
     @render.image
     def img_prec():
-        ruta = rutas_imagenes()["prec"]
-        if os.path.exists(ruta):
-            return {"src": ruta, "alt": "Precipitación", "style": "width: 100%; max-width: 100%; height: auto;"}
-        return {"src": "", "alt": "Imagen no encontrada"}
+        return imagen_render(rutas_imagenes()["prec"], "Precipitación")
 
 # App
 app = App(app_ui, server)
