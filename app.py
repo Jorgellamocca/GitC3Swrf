@@ -1,28 +1,28 @@
 import os
+import sys
 from shiny import App, ui, render, reactive
-from pathlib import Path
 
-# Diccionario de Direcciones Zonales
+# Detecta si estamos en Pyodide (navegador con Shinylive)
+IS_LOCAL = not ("pyodide" in sys.modules)
+
+# Diccionario de Direcciones Zonales (DZ)
 dz_dict = {
     "01": "DZ-PIURA", "02": "DZ-LAMBAYEQUE", "03": "DZ-CAJAMARCA", "04": "DZ-LIMA",
     "05": "DZ-ICA", "06": "DZ-AREQUIPA", "07": "DZ-TACNA", "08": "DZ-LORETO",
     "09": "DZ-SAN MARTÍN", "10": "DZ-HUÁNUCO", "11": "DZ-JUNÍN", "12": "DZ-CUSCO", "13": "DZ-PUNO"
 }
 
-# Leer los meses desde los nombres de archivo en www/temp
-def obtener_meses_disponibles():
-    archivos = Path("docs/temp").glob("out_*_*.png")
-    yyyymm_set = set()
-    for archivo in archivos:
-        partes = archivo.stem.split("_")
-        if len(partes) == 4:
-            _, _, _, yyyymm = partes
-            yyyymm_set.add(yyyymm)
-    return {f"MES{i+1}": fecha for i, fecha in enumerate(sorted(yyyymm_set))}
+# Meses fijos, porque en Shinylive no se puede escanear el sistema de archivos
+meses_dict = {
+    "MES1": "202503",
+    "MES2": "202504",
+    "MES3": "202505",
+    "MES4": "202506",
+    "MES5": "202507",
+    "MES6": "202508"
+}
 
-meses_dict = obtener_meses_disponibles()
-
-# UI
+# Interfaz
 app_ui = ui.page_fluid(
     ui.h2("Pronóstico mensual por Dirección Zonal"),
 
@@ -40,7 +40,7 @@ app_ui = ui.page_fluid(
     )
 )
 
-# Server
+# Servidor
 def server(input, output, session):
 
     @reactive.calc
@@ -49,20 +49,27 @@ def server(input, output, session):
         mes_key = input.mes_selected()
         yyyymm = meses_dict.get(mes_key, "")
 
-        rutas = {
+        return {
             "tmax": f"temp/out_mx2t24a_{dz_code}_{yyyymm}.png",
             "tmin": f"temp/out_mn2t24a_{dz_code}_{yyyymm}.png",
             "prec": f"temp/out_tpara_{dz_code}_{yyyymm}.png"
         }
-        print("Rutas generadas:", rutas)
-        return rutas
 
     def imagen_render(path_web, alt):
-        path_disk = os.path.join("docs", path_web)  # Verificamos si existe el archivo físicamente
-        if os.path.exists(path_disk):
-            return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+        # Validación solo en local
+        if IS_LOCAL:
+            path_disk = os.path.join("temp", os.path.basename(path_web))
+            if os.path.exists(path_disk):
+                return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+            else:
+                return {
+                    "src": "https://via.placeholder.com/400x300?text=No+disponible",
+                    "alt": f"{alt} no disponible",
+                    "style": "width: 100%;"
+                }
         else:
-            return None  # Evita error si no existe
+            # En Shinylive no se puede validar existencia de archivos
+            return {"src": path_web, "alt": alt, "style": "width: 100%;"}
 
     @output
     @render.image
