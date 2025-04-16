@@ -12,7 +12,7 @@ dz_dict = {
     "09": "DZ-SAN MARTÍN", "10": "DZ-HUÁNUCO", "11": "DZ-JUNÍN", "12": "DZ-CUSCO", "13": "DZ-PUNO"
 }
 
-# Meses fijos, porque en Shinylive no se puede escanear el sistema de archivos
+# Meses fijos
 meses_dict = {
     "MES1": "202504",
     "MES2": "202505",
@@ -56,7 +56,7 @@ def server(input, output, session):
         }
 
     def imagen_render(path_web, alt):
-        # Validación solo en local
+        # En entorno local, validamos existencia del archivo
         if IS_LOCAL:
             path_disk = os.path.join("docs/temp", os.path.basename(path_web))
             if os.path.exists(path_disk):
@@ -68,8 +68,12 @@ def server(input, output, session):
                     "style": "width: 100%;"
                 }
         else:
-            # En Shinylive no se puede validar existencia de archivos
-            return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+            # En la web (Shinylive), devolvemos directamente la ruta
+            return {
+                "src": path_web,
+                "alt": alt,
+                "style": "width: 100%;"
+            }
 
     @output
     @render.image
@@ -88,3 +92,4 @@ def server(input, output, session):
 
 # App
 app = App(app_ui, server)
+
