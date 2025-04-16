@@ -50,9 +50,9 @@ def server(input, output, session):
         yyyymm = meses_dict.get(mes_key, "")
 
         return {
-            "tmax": f"docs/temp/out_mx2t24a_{dz_code}_{yyyymm}.png",
-            "tmin": f"docs/temp/out_mn2t24a_{dz_code}_{yyyymm}.png",
-            "prec": f"docs/temp/out_tpara_{dz_code}_{yyyymm}.png"
+            "tmax": f"temp/out_mx2t24a_{dz_code}_{yyyymm}.png",
+            "tmin": f"temp/out_mn2t24a_{dz_code}_{yyyymm}.png",
+            "prec": f"temp/out_tpara_{dz_code}_{yyyymm}.png"
         }
 
     def imagen_render(path_web, alt):
