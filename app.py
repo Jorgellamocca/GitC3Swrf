@@ -2,17 +2,17 @@ import os
 import sys
 from shiny import App, ui, render, reactive
 
-# Detecta si estamos en Pyodide (navegador con Shinylive)
+# Detecta si estamos en Pyodide (Shinylive en navegador)
 IS_LOCAL = not ("pyodide" in sys.modules)
 
-# Diccionario de Direcciones Zonales (DZ)
+# Diccionario de Direcciones Zonales
 dz_dict = {
     "01": "DZ-PIURA", "02": "DZ-LAMBAYEQUE", "03": "DZ-CAJAMARCA", "04": "DZ-LIMA",
     "05": "DZ-ICA", "06": "DZ-AREQUIPA", "07": "DZ-TACNA", "08": "DZ-LORETO",
     "09": "DZ-SAN MARTÍN", "10": "DZ-HUÁNUCO", "11": "DZ-JUNÍN", "12": "DZ-CUSCO", "13": "DZ-PUNO"
 }
 
-# Meses fijos
+# Meses
 meses_dict = {
     "MES1": "202504",
     "MES2": "202505",
@@ -22,7 +22,7 @@ meses_dict = {
     "MES6": "202509"
 }
 
-# Interfaz
+# UI
 app_ui = ui.page_fluid(
     ui.h2("Pronóstico mensual por Dirección Zonal"),
 
@@ -40,15 +40,13 @@ app_ui = ui.page_fluid(
     )
 )
 
-# Servidor
+# Server
 def server(input, output, session):
 
     @reactive.calc
     def rutas_imagenes():
         dz_code = input.dz_selected()
-        mes_key = input.mes_selected()
-        yyyymm = meses_dict.get(mes_key, "")
-
+        yyyymm = meses_dict.get(input.mes_selected(), "")
         return {
             "tmax": f"temp/out_mx2t24a_{dz_code}_{yyyymm}.png",
             "tmin": f"temp/out_mn2t24a_{dz_code}_{yyyymm}.png",
@@ -56,22 +54,21 @@ def server(input, output, session):
         }
 
     def imagen_render(path_web, alt):
-        # En entorno local, validamos existencia del archivo
-        if IS_LOCAL:
-            path_disk = os.path.join("docs/temp", os.path.basename(path_web))
-            if os.path.exists(path_disk):
-                return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+        try:
+            if IS_LOCAL:
+                # Validación en entorno local
+                path_disk = os.path.join("docs", path_web)
+                if os.path.exists(path_disk):
+                    return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+                else:
+                    raise FileNotFoundError
             else:
-                return {
-                    "src": "https://via.placeholder.com/400x300?text=No+disponible",
-                    "alt": f"{alt} no disponible",
-                    "style": "width: 100%;"
-                }
-        else:
-            # En la web (Shinylive), devolvemos directamente la ruta
+                # En entorno web (Pyodide), asumimos que existe
+                return {"src": path_web, "alt": alt, "style": "width: 100%;"}
+        except:
             return {
-                "src": path_web,
-                "alt": alt,
+                "src": "https://via.placeholder.com/400x300?text=No+disponible",
+                "alt": f"{alt} no disponible",
                 "style": "width: 100%;"
             }
 
@@ -92,4 +89,5 @@ def server(input, output, session):
 
 # App
 app = App(app_ui, server)
+
 
